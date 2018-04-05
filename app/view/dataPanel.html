@@ -1,0 +1,193 @@
+<div class="panel panel-default dataPanel nonMarginBotPanel" id="dataPanel">
+		<!-- TABS PANEL -->
+		<div style="margin-top: 5px;">
+				<span ng-repeat="tab in tabs" ng-class="{active:isActiveTab(tab.url)}" ng-click="onClickTab(tab)">
+						<button class="btn btn-primary btn-xs" ng-if="tab.url == currentTab" style="margin-top:5px; margin-left: 5px;">{{tab.title}}</button>
+						<button class="btn btn-default btn-xs" ng-if="tab.url !== currentTab" style="margin-top:5px; margin-left: 5px;">{{tab.title}}</button>
+				</span>
+				<a href="#aboutModal" data-toggle="modal" data-target="#attributeSelectionHelp" class="btn btn-circle-micro btn-primary" style="float:right;margin: 5px;">
+						<span class="glyphicon glyphicon-question-sign"></span>
+				</a>      
+		</div>
+
+		<!-- BODY -->
+		<div class="panel-body nonPaddingBodyPanel">
+			<div id="mainView">
+					<div ng-include="currentTab"></div>
+			</div>
+		</div>
+
+		<!-- SCRIPT TEMPLATES -->
+
+		<!-- VIEW ONE -->
+		<script type="text/ng-template" id="attrSelection.tpl.html">
+			<div id="viewOne">
+				<div>
+		            <div class="container" style="margin-bottom:5px;">
+		                <button type="button" class="btn btn-default btn-xs" style="margin-right:3px;float:right" ng-click="setAttrOperator4CurrentSelectedAttr(operator)" ng-repeat="operator in operators">{{operator}}</button>		                
+		            </div>
+
+		            <!-- If selected concepts is "arquired-data" -->
+		            <div class="form-group" ng-if="listCheckExamTypeDmObjectTypes.indexOf(clickedQueryObject.mappedDmObjectType) !== -1">
+		                <span>Examination Type:</span>
+		                <select class="form-control" ng-model="clickedQueryObject.examType">
+		                    <option value="ExamResIMA">Imaging Exam</option>
+		                    <option value="ExamResGEN">Genetic Exam</option>
+		                    <option value="ExamResBEH">Psychology Exam</option>
+		                </select>
+		            </div>
+
+		            <!-- Object's Attributes -->
+		            <div style="overflow:auto;">
+		                <div class="container">
+		                </div>
+		            </div>
+
+		            <input type="text" class="form-control" placeholder='&#128269; Enter a keyword' ng-model="enterLeafClassName" style="margin-bottom: 10px;"/>
+                <div class="panel-body">
+                  <div class="small-text">
+                      <div ng-repeat="attr in clickedQueryObject.objectAttrs" ng-click="clickAttrClickedQueryObject(attr, $event)" ng-dblclick="dblClickAttrClickedQueryObject(attr)">
+                          <label style="width:65%;" ng-if="attr == currentSelectedAttrClickedQueryObject">{{attr.attrName}}</label>
+                          <label style="width:65%;  color: rgba(0, 0, 0, 0.3);" ng-if="attr !== currentSelectedAttrClickedQueryObject">{{attr.attrName}}</label>
+                          <label style="width:5%">
+                              <font color="gray">{{attr.attrOperator}}</font>
+                          </label>
+                          <input type="text" style="width:25%; border-radius:4px; line-height:20px; border:1px solid #ccc;" ng-style="{'visibility': (attr.attrOperator !== '')?'visible':'hidden'}" ng-model="attr.attrValue">
+                          Get Value: <input type="checkbox" ng-model="attr.getValue">
+                      </div>
+                  </div>
+                  
+                </div>
+
+		            <!-- mappedClasses -->
+		            <div style="overflow:auto; height: 78vh;" class="small-text">
+		                <div ng-repeat="mappedClass in clickedQueryObject.mappedClasses | filter:enterLeafClassName">
+
+		                	<h5 ng-class="'leafClassStyle '+mappedClass.selected" ng-click="clickMappedLeafClass(mappedClass)" style="margin-bottom:10px">
+	                    		<b>{{mappedClass.className}}<b>
+	                    	</h5>
+
+	                    	<!-- if leafClass.id = mappedClass.id (use for appOnto) -->
+	                    	<div ng-repeat="leafClass in mappedClass.listLeafClass | filter:enterLeafClassName" ng-if="leafClass.classId == mappedClass.id">
+		                    	<label ng-class="'leafClassStyle '+leafClass.selected" ng-click="clickMappedLeafClass(leafClass)" style="width: 85%;">
+		                    		<i class="fa fa-dot-circle-o" aria-hidden="true"></i> {{leafClass.className}}
+		                    	</label>
+		                    	<button class="btn btn-default btn-xs" ng-click="getClassifiedData()" ng-show="leafClass.selected == 'selected'">Get Data</button>
+		                    	<div class="attr" ng-repeat="attr in leafClass.tcClassAttrs track by $index" ng-click="clickAttrClickedQueryObject(attr, leafClass, $index, $event)" ng-dblclick="dblClickAttrClickedQueryObject(attr)" ng-show="leafClass.selected == 'selected'">
+	                                <!-- <label style="width:65%;" ng-if="attr == currentSelectedAttrClickedQueryObject" ng-model>{{attr.attrName}}</label>
+	                                <label style="width:65%;  color: rgba(0, 0, 0, 0.3);" ng-if="attr !== currentSelectedAttrClickedQueryObject">{{attr.attrName}}</label> -->
+	                                <input type="text" style="width:65%; border-radius:4px; line-height:20px; border:1px solid #ccc;" ng-model="attr.attrName" ng-if="attr == currentSelectedAttrClickedQueryObject">
+	                                <input type="text" style="width:65%; border-radius:4px; line-height:20px; border:1px solid #ccc;" ng-model="attr.attrName" color: rgba(0, 0, 0, 0.3);" ng-if="attr !== currentSelectedAttrClickedQueryObject">
+	                                <!-- <label style="width:5%" >
+	                                    <font color="gray">{{attr.attrOperator}}</font>
+	                                </label> -->
+	                                <label style="width:5%;" ng-if="attr == currentSelectedAttrClickedQueryObject">{{attr.attrOperator}}</label>
+	                                <label style="width:5%;  color: rgba(0, 0, 0, 0.3);" ng-if="attr !== currentSelectedAttrClickedQueryObject">{{attr.attrOperator}}</label>
+	                                <input type="text" style="width:25%; border-radius:4px; line-height:20px; border:1px solid #ccc;" ng-style="{'visibility': (attr.attrOperator !== '')?'visible':'hidden'}" ng-model="attr.attrValue">
+	                                <!-- <button style="width:5%" ng-click="duplicateCurrentSelectedTcClassAttr(leafClass, attr)"><i class="fa fa-files-o" aria-hidden="true"></i>aa</button> -->
+	                            </div>
+		                    </div>
+		                   
+							<!-- if leafClass.tcClassAttrs !== undefined -->
+							<hr class="breakline_classif">
+		                    <div ng-repeat="leafClass in mappedClass.listLeafClass | filter:enterLeafClassName" ng-if="((leafClass.tcClassAttrs !== undefined) && (leafClass.classId !== mappedClass.id))">
+		                    	<label ng-class="'leafClassStyle '+leafClass.selected" ng-click="clickMappedLeafClass(leafClass)" style="width: 85%;">
+		                    		<i class="fa fa-circle" aria-hidden="true"></i> {{leafClass.className}}
+		                    	</label>		                    	
+		                    	<button class="btn btn-default btn-xs" ng-click="getClassifiedData()" ng-show="leafClass.selected == 'selected'">Get Data</button>
+		                    	<div class="attr" ng-repeat="attr in leafClass.tcClassAttrs track by $index" ng-click="clickAttrClickedQueryObject(attr, leafClass, $index, $event)" ng-dblclick="dblClickAttrClickedQueryObject(attr)" ng-show="leafClass.selected == 'selected'">
+	                                <!-- <label style="width:65%;" ng-if="attr == currentSelectedAttrClickedQueryObject">{{attr.attrName}}</label>
+	                                <label style="width:65%;  color: rgba(0, 0, 0, 0.3);" ng-if="attr !== currentSelectedAttrClickedQueryObject">{{attr.attrName}}</label> -->
+	                                <input type="text" style="width:65%; border-radius:4px; line-height:20px; border:1px solid #ccc;" ng-model="attr.attrName" ng-if="attr == currentSelectedAttrClickedQueryObject">
+	                                <input type="text" style="width:65%; border-radius:4px; line-height:20px; border:1px solid #ccc;" ng-model="attr.attrName" color: rgba(0, 0, 0, 0.3);" ng-if="attr !== currentSelectedAttrClickedQueryObject">
+	                                <!-- <label style="width:5%">
+	                                    <font color="gray">{{attr.attrOperator}}</font>
+	                                </label> -->
+	                                <label style="width:5%;" ng-if="attr == currentSelectedAttrClickedQueryObject">{{attr.attrOperator}}</label>
+	                                <label style="width:5%;  color: rgba(0, 0, 0, 0.3);" ng-if="attr !== currentSelectedAttrClickedQueryObject">{{attr.attrOperator}}</label>
+	                                <input type="text" style="width:25%; border-radius:4px; line-height:20px; border:1px solid #ccc;" ng-style="{'visibility': (attr.attrOperator !== '')?'visible':'hidden'}" ng-model="attr.attrValue">
+	                                <!-- <button style="width:5%" ng-click="duplicateCurrentSelectedTcClassAttr(leafClass, attr)"><i class="fa fa-files-o" aria-hidden="true"></i>aa</button> -->
+	                            </div>
+		                    </div>
+
+		                    <!-- if leafClass.tcClassAttrs == undefined -->
+		                    <hr class="breakline_classif">
+		                    <div ng-repeat="leafClass in mappedClass.listLeafClass | filter:enterLeafClassName" ng-if="((leafClass.tcClassAttrs == undefined) && (leafClass.classId !== mappedClass.id))">
+		                    	<label ng-class="'leafClassStyle '+leafClass.selected" ng-click="clickMappedLeafClass(leafClass)" style="width:85%;">
+		                    		<i class="fa fa-circle-thin" aria-hidden="true"></i> {{leafClass.className}}	                   
+		                    	</label>
+		                    	<!-- <button class="btn btn-default btn-xs" ng-click="getClassifiedData()" ng-show="leafClass.selected == 'selected'">Get Data</button> -->
+		                    </div>
+		                </div>
+		            </div>
+		        </div>
+			</div>
+		</script>
+
+		<!-- VIEW TWO -->
+		<script type="text/ng-template" id="results.tpl.html">
+			<div id="viewTwo">
+				<div class="container">
+					<button type="button" class="btn btn-primary btn-xs" style="float:right; margin-right: 5px;" ng-click="saveCsvListGridResult()">Save .csv</button>
+					<button type="button" class="btn btn-success btn-xs" style="float:right; margin-right: 5px;" ng-click="saveSwoDataListGridResult()">Save .swoData</button>
+				</div>
+				<hr style="margin:10px;">
+
+				<!-- Return results classified -->
+				<div>
+					<uib-accordion close-others="oneAtATime">
+						<uib-accordion-group ng-repeat="gridResultWithClassAttrValueTableData in listGridResultWithClassAttrValueTableData track by $index" ng-if="gridResultWithClassAttrValueTableData.tcClassName == ''" heading="Unclassified objects">
+								<div class="gridStyle" ng-grid="gridResultWithClassAttrValueTableData.gridTable"></div>
+						</uib-accordion-group>
+						<uib-accordion-group ng-repeat="gridResultWithClassAttrValueTableData in listGridResultWithClassAttrValueTableData track by $index" ng-if="gridResultWithClassAttrValueTableData.tcClassName !== ''" heading="{{gridResultWithClassAttrValueTableData.tcClassName}}">
+								<div class="gridStyle" ng-grid="gridResultWithClassAttrValueTableData.gridTable"></div>
+						</uib-accordion-group>
+					</uib-accordion>
+				</div>            
+			</div>
+		</script>
+
+		<!-- VIEW THREE -->
+		<script type="text/ng-template" id="classifiedResutls.tpl.html">
+			<div id="viewThree">
+				<div class="container">
+						<button type="button" class="btn btn-primary btn-xs" style="float:right; margin-right: 5px;" ng-click="saveCsvFinalQueryResult()">Save .csv</button>
+						<button type="button" class="btn btn-success btn-xs" style="float:right; margin-right: 5px;" ng-click="saveSwoDataFinalResult()">Save .swoData</button>
+				</div>
+
+				<!-- Classified results (to be defined another comment) -->
+				<div class="gridStyle" ng-grid="gridClassAssociatedDataTable"></div>
+			</div>
+		</script>
+
+		<!-- VIEW FOUR -->
+		<!-- <script type="text/ng-template" id="d3AllResultGraph.tpl.html">
+			<div id="viewFour">
+				<div style="height: 85%; bottom: 0px;" id="allResultGraph">
+			        <div id="d3AllResultGraph"></div>
+			    </div>
+			</div>
+		</script> -->
+
+		<!-- DATA PANEL HELP MODAL -->
+		<div class="modal fade" id="attributeSelectionHelp" tabindex="-1" role="dialog" aria-spanledby="myModalspan" aria-hidden="true">
+				<div class="modal-dialog">
+						<div class="modal-content">
+								<div class="modal-header">
+										<button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+										<h4 class="modal-title" id="myModalspan">Attribute Selection Help!</h4>
+								</div>
+								<div class="modal-body">
+										<ul class="list">
+												<li>+ Click on an <i>attribute</i>, choose an <i>operator</i> and enter the <i>attribute's value</i> in the input box.</li>
+										</ul>
+								</div>
+								<div class="modal-footer">
+										<center>
+												<button type="button" class="btn btn-circle-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
+										</center>
+								</div>
+						</div>
+				</div>
+		</div>
+</div>

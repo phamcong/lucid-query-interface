@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html lang="en" ng-app="myApp" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> 
+<html lang="en" ng-app="vaquero" class="no-js"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Interface de requete - VAQUERO</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+	<link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.css">
+	<link rel="stylesheet" href="/bower_components/angular-ui-tree/dist/angular-ui-tree.min.css" />
+	<link rel="stylesheet" href="/bower_components/toastr/toastr.css" />
+	<link rel="stylesheet" href="/bower_components/ng-grid/ng-grid.css" />
+	<link rel="stylesheet" href="/bower_components/font-awesome/css/font-awesome.css" />
+	<link rel="stylesheet" href="/bower_components/jquery-ui/themes/base/jquery-ui.css" />
+	<link rel="stylesheet" href="/bower_components/rzslider/rzslider.css" />
+	<link rel="stylesheet" href="/bower_components/html5-boilerplate/dist/css/normalize.css">
+	<link rel="stylesheet" href="/bower_components/html5-boilerplate/dist/css/main.css">
+	<link rel="stylesheet" href="css/app.css">
+	<!-- <link rel="stylesheet" href="css/cadesis.css"> -->
+	<link rel="stylesheet" href="css/interface.css">
+
+	<script src="/bower_components/html5-boilerplate/dist/js/vendor/modernizr-2.8.3.min.js"></script>
+	<!-- bower:js -->
+	<script src="/bower_components/jquery/dist/jquery.js"></script>
+	<script src="/bower_components/angular/angular.js"></script>
+	<script src="/bower_components/angular-animate/angular-animate.js"></script>
+	<script src="/bower_components/angular-resource/angular-resource.js"></script>
+	<script src="/bower_components/angular-translate/angular-translate.js"></script>
+	<script src="/bower_components/angular-cookies/angular-cookies.js"></script>
+	<script src="/bower_components/angular-touch/angular-touch.js"></script>
+	<script src="/bower_components/bootstrap/dist/js/bootstrap.js"></script>
+	<script src="/bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+	<script src="/bower_components/d3/d3.js"></script>
+	<script src="/bower_components/underscore/underscore.js"></script>
+	<script src="/bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.js"></script>
+	<script src="/bower_components/jquery-ui/jquery-ui.js"></script>
+	<script src="/bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+	<script src="/bower_components/angular-ui-tree/dist/angular-ui-tree.js"></script>
+	<script src="/bower_components/toastr/toastr.js"></script>
+	<script src="/bower_components/angular-drag-and-drop-lists/angular-drag-and-drop-lists.js"></script>
+	<script src="/bower_components/ng-grid/build/ng-grid.js"></script>
+	<script src="/bower_components/angular-route/angular-route.js"></script>
+	<script src="/bower_components/rzslider/rzslider.js"></script>
+	<script src="/bower_components/angular-loader/angular-loader.js"></script>
+	<script src="/bower_components/Blob/Blob.js"></script>
+	<script src="/bower_components/file-saver/FileSaver.js"></script>
+	<script src="/bower_components/blob-polyfill/Blob.js"></script>
+	<script src="/bower_components/file-saver.js/FileSaver.js"></script>
+	<script src="/bower_components/angular-file-saver/dist/angular-file-saver.bundle.js"></script>
+	<!-- endbower -->
+	
+	<!-- (vaquero js) -->
+	<script src="lib/xml2json/jquery.xml2json.js"></script>
+    <script>
+      document.write('<base href="' + document.location + '" />')
+    </script>
+    <script>
+      $(function() {
+        $( "#datepicker" ).datepicker({
+          dateFormat: "yy-MM-dd",
+          onSelect: function(date) {
+            var d = new Date();
+            date = date+" "+d.getHours()+":"+('0'+d.getMinutes()).slice(-2);
+            $('#datepicker').val(date);
+          }
+        });
+      });
+    </script>
+</head>
+<body ng-app="vaquero" ng-controller="queryConstructionController">
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-3 nonPaddingCol">
+				<div data-ng-include="'view/conceptTreePanel.html'"></div>
+				<div data-ng-include="'view/conceptDescriptionPanel.html'"></div>
+			</div>
+			<div class="col-sm-5 nonPaddingCol">
+				<div data-ng-include="'view/relationGraphPanel.html'"></div>
+				<div data-ng-include="'view/queryGraphPanel.html'"></div>
+			</div>
+			<div class="col-sm-4 nonPaddingCol">
+				<div data-ng-include="'view/dataPanel.html'"></div>
+				<div data-ng-include="'view/productDisplay.html'"></div>
+			</div>
+		</div>
+	</div>
+	<script src="scripts/app.js"></script>  <!-- must load first -->
+	<script src="scripts/factories.js"></script>  <!-- must load 2nd -->
+	<script src="scripts/appstart.js"></script>
+	<script src="scripts/controller/queryConstructionController.js"></script>
+</body>     
+</html>

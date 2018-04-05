@@ -1,0 +1,87 @@
+<div class="panel panel-default conceptTreePanel nonMarginBotPanel">
+	<div class="panel-heading">
+	    <i class="fa fa-building-o fa-fw"></i><b>Concept Tree</b>
+        <!-- <button ng-click=getCordinateD3RelationGraph()>GetCodis</button> -->
+        <!-- <button ng-click=jsonResult2gridTableResult()>getGridData</button> -->
+        <!-- <button ng-click=getMappedDmObjectTypeLeafClassMapping()>GetMap</button> -->
+        <!-- <button ng-click=createListOntoConceptLeafClassMapping()>GetMap2</button> -->
+        <!-- <button ng-click=createListAppOntoConceptLeafClassMapping()>GetMap3</button> -->
+        <!-- <button ng-click=getListConceptNames()>GetListConceptNames</button>  style="float:right; margin-left:5px; margin-right:5px;" -->
+        <a href="#aboutModal" data-toggle="modal" data-target="#ontoTreeHelp" class="btn btn-circle-micro btn-primary right">
+            <span class="glyphicon glyphicon-question-sign"></span>
+        </a>  
+	</div>
+	<div class="panel-body">
+        <!-- ONTOLOGY SLIDER -->
+        <div class="wrapper">
+            <article>
+                <rzslider rz-slider-model="ontologySelection.value" rz-slider-options="ontologySelection.options"></rzslider>
+            </article>
+        </div>
+
+        <!-- INPUT TEXT SEARCH -->
+        <input type="text" class="form-control" placeholder='&#128269; Enter a keyword' ng-model="keyWord" />
+
+        <!-- ONTOCONCEPT TREE -->
+        <div class="small-text" style="margin-top:5px;">
+            <script type="text/ng-template" id="conceptTreeModel.html">
+                <ul>
+                    <li ng-repeat="item in ontoConceptTreeItems.items | filter:keyWord" ng-if="item.name !== 'process'">
+                        <div ng-if="(item.conceptParentIds === undefined)">
+                            <i class="fa fa-home" ng-click="clickConceptIcon(item, $event)"></i>
+                            <span ng-class='item.selected' ng-click="clickConcept(item)" ng-dblclick="dblClickConcept(item)"> {{item.name}}</span>
+                            <hr class="breakline_classif">
+                        </div>
+                        <div ng-if="item.children.length == 0" >
+                            <i class="fa fa-building-o" aria-hidden="true" ng-click="clickConceptIcon(item, $event)"></i>
+                            <span ng-class='item.selected' ng-click="clickConcept(item)" ng-dblclick="dblClickConcept(item)">{{item.name}}</span>
+                            <hr class="breakline_classif">
+                        </div>
+                        <div ng-if='item.iconClicked && (item.children.length > 0) && (item.conceptParentIds !== undefined)'>
+                            <i class="fa fa-folder-open-o" aria-hidden="true" ng-click="clickConceptIcon(item, $event)" style="color:#286090"></i>
+                            <span ng-class='item.selected' ng-click="clickConcept(item)" ng-dblclick="dblClickConcept(item)"> {{item.name}}</span>
+                            <hr class="breakline_classif">
+                        </div>
+                        <div ng-if='!(item.iconClicked) && (item.children.length > 0) && (item.conceptParentIds !== undefined)'>
+                            <i class="fa fa-folder-o" aria-hidden="true" ng-click="clickConceptIcon(item, $event)"></i>
+                            <span ng-class='item.selected' ng-click="clickConcept(item)" ng-dblclick="dblClickConcept(item)"> {{item.name}}</span>
+                            <hr class="breakline_classif">
+                        </div>
+                        <div ng-if="item.node !== undefined" ng-include=" 'conceptTreeModel.html'" onload="ontoConceptTreeItems={'items':item.node}; nodeLevel = nodeLevel+1" ng-show='item.showed'>
+                        </div>
+                    </li>
+                </ul>
+            </script>
+            <div ng-include=" 'conceptTreeModel.html' " onload="ontoConceptTreeItems = ontoConceptTreeModel">
+            </div>  
+        </div>
+
+        <!-- ONTOCONCEPT MODAL -->
+
+        <div class="modal fade" id="ontoTreeHelp" tabindex="-1" role="dialog" aria-labelledby="ontoTreeModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                        <h4 class="modal-title" id="ontoTreeModalLabel">Ontology Tree Help!</h4>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="list">
+                            <li>+
+                                <font color="red"> Click on </font> <i class="fa fa-home" aria-hidden="true"></i> <i class="fa fa-folder-o" aria-hidden="true"></i> to expand the ontology tree.</li>
+                            <li>+
+                                <font color="red"> Click on </font> a <b>concept name</b> to see the concept usage.</li>
+                            <li>+
+                                <font color="red"> Double click </font> on a <b>concept name</b> to select <i>query object</i>. <i>Query object</i> is the subject which contains the information you want to search.</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <center>
+                            <button type="button" class="btn btn-circle-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
+                        </center>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

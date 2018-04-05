@@ -1,0 +1,318 @@
+.container {
+	width: 100%;
+	height: 100%;
+}
+
+.conceptTreePanel, .relationGraphPanel, .dataPanel {
+	overflow: auto;
+	height: 60vh;
+}
+
+.conceptDescriptionPanel, .queryGraphPanel, .productPanel {
+	overflow: auto;
+	height: 39.5vh;
+}
+
+.right {
+	float: right;
+}
+.label_selected_object{
+	padding-left:3px;
+	padding-right:3px;
+	margin-right:5px;
+	margin-bottom:1px;
+}
+
+.label_query_object{
+	color: red;
+	padding-left:3px;
+	padding-right:3px;
+	margin-right:5px;
+	margin-bottom:1px;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.label_object_attr{
+	font-weight: normal;
+	padding-left:3px;
+	padding-right:3px;
+	margin: 2px;
+}
+
+.right {
+	float: right;
+}
+
+.left {
+	float: left;
+}
+
+ul {
+	padding: 0px;
+}
+
+li {
+  list-style: none;
+  padding: 0px;
+  margin: 0px 0px 0px 10px;
+}
+
+.div_query_object{
+	border:1px solid #DCDCDC;
+	overflow:auto;
+	margin-bottom:5px;
+	border-radius: 4px;
+	height: 30px;
+}
+
+.div_route_objects{
+	border:1px solid #DCDCDC;
+	overflow:auto;
+	margin-bottom:5px;
+	border-radius: 4px;
+	height: 35px;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+.div_math_symbol{
+	border:1px solid #DCDCDC;
+	overflow:auto;
+	margin-bottom:5px;
+	border-radius: 4px;
+	height: 40x;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+.btn_custom {
+	font-weight: normal;
+	color: #428bca;
+	cursor: pointer;
+	border-radius: 0;
+		margin-left:3px;
+		margin-right:3px;
+	border:none;
+}
+
+.math_btn_custom{
+	font-weight: normal;
+	color: #428bca;
+	cursor: pointer;
+	border-radius: 0;
+	margin:3px;
+	border:none;
+}
+
+.div_custom{
+	border:1px solid #DCDCDC;
+	overflow:auto;
+	margin-bottom:5px;
+	border-radius: 4px;
+	overflow:auto;
+}
+
+.bracket{
+	font-weight: bold;
+	color: red;
+	cursor: pointer;
+	border-radius: 0;
+	border:none;
+}
+
+.operator{
+	font-weight: bold;
+	color: blue;
+	cursor: pointer;
+	border-radius: 0;
+	border:none;
+}
+
+.logicFunction{
+	font-weight: bold;
+	color: #428bca;
+	cursor: pointer;
+	border-radius: 0;
+	border:none;
+}
+
+.clicked_object_attr{
+	font-weight: bold;
+	color:#FF6600;
+	margin: 2px;
+}
+
+input.right {
+	float: right;
+}
+
+.btn-file {
+	position: relative;
+	overflow: hidden;
+}
+
+.ctm-btn-1 {
+	float: right;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+.btn-file input[type=file] {
+	position: absolute;
+	top: 0;
+	right: 0;
+	min-width: 100%;
+	min-height: 100%;
+	font-size: 100px;
+	text-align: right;
+	filter: alpha(opacity=0);
+	opacity: 0;
+	outline: none;
+	background: white;
+	cursor: inherit;
+	display: block;
+}
+
+.gridStyle {
+	border: 1px solid rgb(212,212,212);
+}
+
+.scrollFullHeight {
+	height: 100vh;
+	overflow: scroll;
+}
+
+.fullHeight {
+	height: 100vh;
+}
+
+.panel {
+	margin-bottom: 0.5vh;
+}
+
+.nonMarginBotPanel {
+	margin-bottom: 0vh;
+}
+
+.nonPaddingCol {
+	padding-right: 5px;
+	padding-left: 5px;
+}
+
+.nonPaddingBodyPanel {
+	padding-bottom: 0px;
+}	
+
+.svg-container {
+	display: inline-block;
+	position: relative;
+	width: 100%;
+	padding-bottom: 100%; /* aspect ratio */
+	vertical-align: top;
+	overflow: hidden;
+}
+
+.svg-content-responsive {
+	display: inline-block;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.svg-content {
+	display: inline-block;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.small-text {
+	 font-size: small;
+	 font-family: Arial;
+}
+.panel {
+	margin-bottom: 0.5vh;
+}
+
+.btn-circle {
+	width: 49px;
+	height: 49px;
+	text-align: center;
+	padding: 5px 0;
+	font-size: 20px;
+	line-height: 2.00;
+	border-radius: 30px;
+}
+
+.btn-circle-micro {
+	width: 19px;
+	height: 19px;
+	text-align: center;
+	padding: 1px 0;
+	font-size: 13px;
+	line-height: 0.1;
+	border-radius: 30px;
+}
+
+.btn-circle-sm {
+	width: 35px;
+	height: 35px;
+	text-align: center;
+	padding: 2px 0;
+	font-size: 20px;
+	line-height: 1.65;
+	border-radius: 30px;
+}
+
+.btn-circle-lg {
+	width: 79px;
+	height: 79px;
+	text-align: center;
+	padding: 13px 0;
+	font-size: 30px;
+	line-height: 2.00;
+	border-radius: 70px;
+}
+
+.breakline_classif {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.selected {
+  	background-color: #aaddff;
+  	font-weight: bold;
+  	padding: 1px 5px;
+}
+
+.inputSearchText {
+	height: 25px;
+}
+
+.leafClassStyle {
+	text-indent: 0px;
+	margin-bottom: 2px;
+}
+
+.attr {
+	text-indent: 10px;
+	margin-bottom: 0px;
+}
+
+label {
+	font-weight: normal;
+}
+
+DIV .node {
+	position:absolute;
+	font-weight:normal;
+/* 	opacity: 0.9; */
+	cursor: pointer;
+	-webkit-font-smoothing: antialiased;
+	padding: 0px;
+}

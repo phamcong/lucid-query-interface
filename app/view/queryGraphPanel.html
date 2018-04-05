@@ -1,0 +1,135 @@
+<div class="panel panel-default queryGraphPanel nonMarginBotPanel">
+  <div class="panel-heading">
+       <i class="fa fa-building-o fa-fw"></i></i><b>Query Graph</b>
+       <a href="#aboutModal" data-toggle="modal" data-target="#QueryGraphHelp" class="btn btn-circle-micro btn-primary" style="float:right;">
+           <span class="glyphicon glyphicon-question-sign"></span>
+       </a>
+       <button type="button" class="btn btn-danger btn-xs" style="float:right; margin-right:5px;" ng-click="generateSPARQL(d3QueryGraph)">Generate</button>
+       <label href="#aboutModal" data-toggle="modal" data-target="#queryOptionModal" class="btn btn-button btn-primary btn-xs" style="float:right; margin-right: 5px;">Query Options
+       </label>
+       <label href="#aboutModal" data-toggle="modal" data-target="#saveQueryModal" class="btn btn-button btn-primary btn-xs" style="float:right; margin-right: 5px;">
+       Save Query
+       </label>
+       <span class="btn btn-primary btn-xs btn-file" style="float: right; margin-right:5px;">
+           Load query <input accept='.txt' type="file" on-read-file="loadSavedQuery($fileContent)">
+       </span>
+       <button type="button" class="btn btn-info btn-xs" style="float:right; margin-right:5px;" ng-click="removeD3QueryGraph()">Reset</button>
+       <!-- <button type="button" class="btn btn-primary btn-xs" style="float:right; margin-right:5px;" ng-click="getClassifiedData()">Get classified data</button> -->
+   </div>
+
+   <!-- QUERY GRAPH -->
+   <div style="height: 85%; bottom: 0px;" id="queryGraph">
+       <div id="d3QueryGraph"></div>
+   </div>
+
+   <div class="modal fade" id="saveQueryModal" tabindex="-1" role="dialog" aria-labelledby="saveQueryModalLabel" aria-hidden="true">
+       <div class="modal-dialog">
+           <div class="modal-content">
+               <div class="modal-header">
+                   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                   <h4 class="modal-title" id="saveQueryModalLabel">Save Query:</h4>
+                   <div class="modal-body">
+                       <i>Enter the query name to save:</i>
+                       <br>
+                       <form class="form-inline">
+                           <input type="text" class="form-control" style="width:80%" placeholder='enter query name' ng-model="savedQueryName" />
+                           <button type="button" class="btn btn-default" style="float:right; margin-right:5px;" ng-click="saveQuery(savedQueryName)">Save</button>
+                       </form>
+                   </div>
+                   <div class="modal-footer">
+                       <center>
+                           <button type="button" class="btn btn-circle-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
+                       </center>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+
+   <!-- QUERY OPTION MODAL -->
+   <div class="modal fade" id="queryOptionModal" tabindex="-1" role="dialog" aria-labelledby="queryOptionModalLabel" aria-hidden="true">
+       <div class="modal-dialog">
+           <div class="modal-content">
+               <div class="modal-header">
+                   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                   <h4 class="modal-title" id="queryOptionModalLabel">Query option!</h4>
+                   <div class="modal-body">
+                       <i>Enter username password (default is infodba account): </i>
+                       <br>
+                       <form class="form-inline">
+                           <input type="text" class="form-control" style="width: 49%" placeholder='enter username' ng-model="userAccount.username" />
+                           <input type="text" class="form-control right" style="width: 49%" placeholder='enter password' ng-model="userAccount.password" />
+                       </form>
+                       <br>
+                       <div class="small-text">
+                           <label ng-repeat="queryOption in queryOptions">
+                               <input type="radio" ng-model="selectedQueryOption.optionValue" ng-value="queryOption.optionValue"> {{queryOption.optionName}}
+                           </label>
+                           <br/>
+                           <hr>
+                           <div ng-if="selectedQueryOption.optionValue == 'onlyRootQueryObject'">
+                               <div class="indent-div">
+                                   <p><i> You can get only results by Id or with information in the classification.</i></p>
+                               </div>
+                               <ul>
+                                   <li style="text-indent: 20px">
+                                       <label ng-repeat="resultWithClassifOption in resultWithClassifOptions">
+                                           <input type="radio" ng-model="resultWithClassif.optionValue" ng-value="resultWithClassifOption.optionValue"> {{resultWithClassifOption.optionName}}
+                                       </label>
+                                   </li>
+                               </ul>
+                           </div>
+
+                           <div ng-if="selectedQueryOption.optionValue == 'getRelatedObjects'">
+                               <div class="indent-div">
+                                   <p><i> Obtain related objects and their attributes' value takes time. Please limit the number of root objects.</i></p>
+                               </div>
+                               <ul>
+                                   <li ng-repeat="returnResultNumberOption in returnResultNumberOptions" style="text-indent: 20px">
+                                       <label>
+                                           <input type="radio" ng-model="selectedReturnResultNumberOption.optionValue" ng-value="returnResultNumberOption.optionValue"> {{returnResultNumberOption.optionName}}
+                                       </label>
+                                   </li>
+                               </ul>
+                               <div class="indent-input">
+                                   <input type="text" class="form-control" ng-if="selectedReturnResultNumberOption.optionValue =='other'" ng-model="returnResultNumber.value" style="width: 100px;">
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+                   <div class="modal-footer">
+                       <center>
+                           <button type="button" class="btn btn-circle-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
+                       </center>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+   <!-- QUERY GRAPH HELP MODAL-->
+   <div class="modal fade" id="QueryGraphHelp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+       <div class="modal-dialog">
+           <div class="modal-content">
+               <div class="modal-header">
+                   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                   <h4 class="modal-title" id="myModalLabel">Query Graph Help!</h4>
+               </div>
+               <div class="modal-body">
+                   <div class="small-text">
+                       <ul class="list">
+                           <li>
+                               + <font color="red"> Click on a node </font> to see all relationships existings between this node and others. In the same time, you can see mapped classes of this current selected node. You can choose a class and define the class attributes' value in <i>Attribute Selection Panel</i>.</li>
+                           <li>+
+                               <font color="red"> Ctrl click on a node </font> to remove it from related queries. Attention, if you remove a node, all nodes after it in the query object routes will also be removed.</li>
+                       </ul>
+                   </div>
+               </div>
+               <div class="modal-footer">
+                   <center>
+                       <button type="button" class="btn btn-circle-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
+                   </center>
+               </div>
+           </div>
+       </div>
+   </div>
+</div>

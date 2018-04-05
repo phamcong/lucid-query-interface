@@ -1,0 +1,57 @@
+<div class="panel panel-default conceptDescriptionPanel nonMarginBotPanel">
+	<div class="panel-heading">
+        <i class="fa fa-building-o fa-fw"></i><b>Concept Description</b>
+        <a href="#aboutModal" data-toggle="modal" data-target="#conceptUsageHelp" class="btn btn-circle-micro btn-primary" style="float:right;">
+            <span class="glyphicon glyphicon-question-sign"></span>
+        </a>
+    </div>
+    <div class="panel-body">
+
+        <!-- current selected concept -->
+        <span>Selected concept:</span>
+        <font color="#d9534f;"> {{currentSelectedConcept.name}}</font>
+        <hr style="margin:5px;">
+
+        <!-- concept annotation -->
+        <span><u>Annotation: </u></span>
+        <div name="input" style="float:center;height:80px;width:100%;border-radius:5px;overflow:auto;" class="small-text" required ng-trim="false">
+            <ul>
+                <li ng-repeat="annotation in currentSelectedConcept.annotations">
+                    + <i>[type: {{annotation.type}}]</i> {{annotation.comment}}
+                </li>
+            </ul>
+        </div>
+
+        <!-- concept restrictions -->
+        <span><u>Restrictions: </u></span>
+        <ul class="small-text">
+            <li ng-repeat="objectRestriction in currentSelectedConcept.objectRestrictions">
+                + <i>{{objectRestriction.restrictedProperty}}</i>
+                <font color="blue"><b>{{objectRestriction.restrictionType}}</b></font> <b>{{objectRestriction.restrictionValue}}</b> <i>{{objectRestriction.restrictionFiller.slice(objectRestriction.restrictionFiller.indexOf("#")+1)}}</i>
+            </li>
+        </ul>
+
+        <!-- CONCEPT DESCRIPTION HELP MODAL -->
+        <div class="modal fade" id="conceptUsageHelp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                        <h4 class="modal-title" id="myModalLabel">Concept Usage Help!</h4>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="list">
+                            <li>+ Description of concept: Concept's annotations and all relationships with other concepts. </li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <center>
+                            <button type="button" class="btn btn-circle-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
+                        </center>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
