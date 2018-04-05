@@ -28,6 +28,7 @@
         angular.element(document).ready(function() { // This code is executed after DOM loaded fully
             $scope.classifTreeRootClassId = "ICM";
             $scope.ontoConceptTreeModel = { "items": [] };
+            $scope.navigationTreeModel = { "items": [] };
             $scope.queryConceptIds = [];
             $scope.operators = ["<=", "<", ">=", ">", "!=", "="];
             $scope.listCheckExamTypeDmObjectTypes = ["GIN4_ExamRes", "GIN4_Acquisition", "GIN4_DataUnit"];
@@ -110,97 +111,18 @@
                 return tabUrl == $scope.currentTab;
             };
 
-            // $scope.$watch('ontologySelection',function(){
-            //     switch($scope.ontologySelection.value) {
-            //         case 0:
-            //             initialization($scope.busOntoConceptTreeArray,$scope.busOntoRelationGraph);
-            //             break;
-            //         case 1:
-            //             initialization($scope.appOntoConceptTreeArray,$scope.appOntoRelationGraph);
-            //             break;
-            //         case 2:
-            //             initialization($scope.busOntoDmConceptTreeArray,$scope.busOntoDmRelationGraph);
-            //             break;
-            //     }
-            // },true);
-
-            // function initialization(ontoConceptTreeArray, relationGraph) {
-            //     $scope.conceptTreeArray = ontoConceptTreeArray;
-            //     $scope.conceptTree = $scope.conceptTreeArray[0]; $scope.listConcept = []; 
-            //     getListConceptFromTree($scope.conceptTree, $scope.listConcept);
-            //     $scope.listConceptIds = $scope.listConcept.map(function(e) {return e.id;});
-            //     $scope.ontoConceptTreeModel.items = ontoConceptTreeArray;
-            //     $scope.d3RelationGraph = relationGraph;
-            //     $scope.d3ConceptRelations = setD3ConceptRelations($scope.d3RelationGraph);
-            //     displayD3RelationGraph($scope.d3RelationGraph);
-            //     $scope.clickedQueryObject = undefined;
-            //     fnRemoveD3QueryGraph();
-            // }
-
-            // $http.get("data/appOnto_v1_conceptTree_array.json").success(function(data) {
-            //     $scope.appOntoConceptTreeArray = data;
-            //     $http.get("data/appOnto_v1_relationGraph.json").success(function(data) {
-            //         $scope.appOntoRelationGraph = data;
-            //     });
-            // });
-
-            // $http.get("data/busOnto_dm_v1_conceptTree_array.json").success(function(data) {
-            //     $scope.busOntoDmConceptTreeArray = data;
-            //     $http.get("data/busOnto_dm_v1_relationGraph.json").success(function(data) {
-            //         $scope.busOntoDmRelationGraph = data;
-            //         initialization($scope.busOntoDmConceptTreeArray, $scope.busOntoDmRelationGraph);
-            //     });
-
-            //     // $scope.busOntoConceptTreeArray = data;
-            //     // $scope.busOntoConceptTree = data[0];
-            //     // $scope.conceptTreeArray = $scope.busOntoConceptTreeArray;
-            //     // $scope.conceptTree = data[0]; $scope.listConcept = [];
-            //     // getListConceptFromTree($scope.conceptTree, $scope.listConcept);
-            //     // $scope.ontoConceptTreeModel.items = $scope.conceptTreeArray;
-            // });
-
-            // $http.get("data/busOnto_v3_conceptTree_array.json").success(function(data) {
-            //     $scope.busOntoConceptTreeArray = data;
-            //     $http.get("data/busOnto_v3_relationGraph.json").success(function(data) {
-            //         $scope.busOntoRelationGraph = data;
-            //     });
-            // });
-
-            // $http.get("data/busOnto_relationGraph.json").success(function(data) {
-            //     console.log(data);
-            //     $scope.d3RelationGraph = data;
-            //     $scope.d3ConceptRelations = setD3ConceptRelations($scope.d3RelationGraph);
-            //     displayD3RelationGraph($scope.d3RelationGraph);
-            // });
-
-            // $http.get("data/exported_tc_classif.xml").success(function(data) {
-            //     $scope.jsonExportedClassif = plmxlmClassif2jsonExportedClassif(data);
-            //     jsonExportedClassif2classifTree($scope.jsonExportedClassif);
-            //     $scope.allLeafClasses = [];
-            //     getAllLeafClasses($scope.classifTree, $scope.allLeafClasses);
-            //     $scope.allLeafClassIds = $scope.allLeafClasses.map(function(e) {return e.id;});
-            // });
-
-            // $http.get("data/list_path.json").success(function(data) {
-            //     $scope.listPath = data;
-            //     console.log($scope.listPath);
-            // });
-
-            // $http.get("data/all_result.xml").success(function(data) {
-            //     $scope.jsonAllResult = $.xml2json(data);
-            //     $scope.d3AllResultGraph = jsonAllResult2d3AllResultGraph($scope.jsonAllResult);
-            //     displayD3AllResultGraph($scope.d3AllResultGraph);
-            //     console.log($scope.jsonAllResult);
-            //     console.log($scope.d3AllResultGraph);
-            // });
+            
             
 
             /**
              * THIS SECTION READ .OWL FILE AND CONVERT IT INTO CONCEPTS TREE AND RELATIONS GRAPHS
              */
-            $http.get("data/lucid/onto-stepNC.owl").success(function(data) {
+            $http.get("data/onto-stepNC.owl").success(function(data) {
                 $http.get("http://localhost:8080/queries").success(function(data) {
                     console.log('saved queries', data);
+                });
+                $http.get("data/navigation_tree.json").success(function(data) {
+                    $scope.navigationTreeModel.items = [data];
                 });
                 $http({
                     method  : 'POST',
@@ -220,15 +142,11 @@
                 $scope.owlOnto = data;
                 $scope.jsonOnto = owlOnto2jsonOnto($scope.owlOnto);
                 jsonOnto2conceptTreeRelationGraph($scope.jsonOnto);
-                // addGroup2ConceptTree($scope.ontoConceptTree);
                 console.log('final ontoConceptTree', $scope.ontoConceptTree);
-                // writeFile("ontoConceptTree.json", JSON.stringify($scope.ontoConceptTree));
+                writeFile("ontoConceptTree.json", JSON.stringify($scope.ontoConceptTree));
                 $scope.ontoConceptTreeArray = [$scope.ontoConceptTree];
                 $scope.ontoConceptTreeModel.items = $scope.ontoConceptTreeArray;
                 $scope.d3RelationGraphDict = getD3RelationGraphDict($scope.ontoConcepts, $scope.ontoConceptDict, $scope.d3ConceptDict);
-                /*$scope.d3RelationGraph = getD3RelationGraph($scope.ontoConceptTree);
-                $scope.d3ConceptRelations = setD3ConceptRelations($scope.d3RelationGraph);
-                displayD3RelationGraph($scope.d3RelationGraph);*/
                 $scope.clickedQueryObject = undefined;
                 fnRemoveD3QueryGraph();
             })

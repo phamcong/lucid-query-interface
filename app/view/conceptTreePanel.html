@@ -22,6 +22,41 @@
         <!-- INPUT TEXT SEARCH -->
         <input type="text" class="form-control" placeholder='&#128269; Enter a keyword' ng-model="keyWord" />
 
+        <!-- NAVIGATION TREE -->
+        <div class="small-text" style="margin-top:5px;" ng-if="ontologySelection.value == 1">
+            <script type="text/ng-template" id="navigationTreeModel.html">
+                <ul>
+                    <li ng-repeat="item in navigationTreeItems.items | filter:keyWord" ng-if="item.name !== 'process'">
+                        <div ng-if="(item.conceptParentIds === undefined)">
+                            <i class="fa fa-home" ng-click="item.showed = !item.showed"></i>
+                            <span ng-class='item.selected' ng-click="clickConcept(item)" ng-dblclick="dblClickConcept(item)"> {{item.name}}</span>
+                            <hr class="breakline_classif">
+                        </div>
+                        <div ng-if="item.children.length == 0" >
+                            <i class="fa fa-building-o" aria-hidden="true" ng-click="item.showed = !item.showed"></i>
+                            <span ng-class='item.selected' ng-click="clickConcept(item)" ng-dblclick="dblClickConcept(item)">{{item.name}}</span>
+                            <hr class="breakline_classif">
+                        </div>
+                        <div ng-if='item.iconClicked && (item.children.length > 0) && (item.conceptParentIds !== undefined)'>
+                            <i class="fa fa-folder-open-o" aria-hidden="true" ng-click="item.showed = !item.showed" style="color:#286090"></i>
+                            <span ng-class='item.selected' ng-click="clickConcept(item)" ng-dblclick="dblClickConcept(item)"> {{item.name}}</span>
+                            <hr class="breakline_classif">
+                        </div>
+                        <div ng-if='!(item.iconClicked) && (item.children.length > 0) && (item.conceptParentIds !== undefined)'>
+                            <i class="fa fa-folder-o" aria-hidden="true" ng-click="item.showed = !item.showed"></i>
+                            <span ng-class='item.selected' ng-click="clickConcept(item)" ng-dblclick="dblClickConcept(item)"> {{item.name}}</span>
+                            <hr class="breakline_classif">
+                        </div>
+                        <div ng-if="item.node !== undefined" ng-include=" 'navigationTreeModel.html'" onload="navigationTreeItems={'items':item.node}; nodeLevel = nodeLevel+1" ng-show='item.showed'>
+                        </div>
+                    </li>
+                </ul>
+            </script>
+            <div ng-include=" 'navigationTreeModel.html' " onload="navigationTreeItems = navigationTreeModel">
+            </div>  
+        </div>
+
+
         <!-- ONTOCONCEPT TREE -->
         <div class="small-text" style="margin-top:5px;">
             <script type="text/ng-template" id="conceptTreeModel.html">
