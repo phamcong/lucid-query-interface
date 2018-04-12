@@ -1,0 +1,24 @@
+<div class="panel panel-default savedQueryPanel nonMarginBotPanel">
+	<div class="panel-heading">
+        <i class="fa fa-building-o fa-fw"></i><b>Saved Query</b>        
+    </div>
+    <div class="panel-body saved-queries">
+      <div class="list-group">
+        <div ng-repeat="query in savedQueries">
+          <a href="#" class="list-group-item list-group-item-action" ng-class="query.activeClass" ng-click="clickSavedQuery(query)">
+            {{query.name}}
+            <label ng-if="query.activeClass =='active'" class="pull-right" ng-click="deleteQuery(query)">X</label>
+          </a>
+          
+        </div>
+      
+        <!-- <a href="#" class="list-group-item list-group-item-action">
+          Cras justo odio
+        </a>
+        <a href="#"  ng-class="t">Dapibus ac facilisis in</a>
+        <a href="#" class="list-group-item list-group-item-action" ng-class="active">Morbi leo risus</a>
+        <a href="#" class="list-group-item list-group-item-action">Porta ac consectetur ac</a>
+        <a href="#" class="list-group-item list-group-item-action disabled">Vestibulum at eros</a> -->
+      </div>
+    </div>
+</div>

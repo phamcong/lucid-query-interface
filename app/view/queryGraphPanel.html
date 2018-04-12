@@ -4,16 +4,17 @@
        <a href="#aboutModal" data-toggle="modal" data-target="#QueryGraphHelp" class="btn btn-circle-micro btn-primary" style="float:right;">
            <span class="glyphicon glyphicon-question-sign"></span>
        </a>
-       <button type="button" class="btn btn-danger btn-xs" style="float:right; margin-right:5px;" ng-click="generateSPARQL(d3QueryGraph)">Generate</button>
-       <label href="#aboutModal" data-toggle="modal" data-target="#queryOptionModal" class="btn btn-button btn-primary btn-xs" style="float:right; margin-right: 5px;">Query Options
-       </label>
+       <button type="button" class="btn btn-primary btn-xs" style="float:right; margin-right:5px;" ng-click="executeSPARQL()">Execute</button>
+       <button type="button" class="btn btn-primary btn-xs" style="float:right; margin-right:5px;" ng-click="generateSPARQL(d3QueryGraph)">Generate</button>
+       <!-- <label href="#aboutModal" data-toggle="modal" data-target="#queryOptionModal" class="btn btn-button btn-primary btn-xs" style="float:right; margin-right: 5px;">Query Options
+       </label> -->
        <label href="#aboutModal" data-toggle="modal" data-target="#saveQueryModal" class="btn btn-button btn-primary btn-xs" style="float:right; margin-right: 5px;">
        Save Query
        </label>
-       <span class="btn btn-primary btn-xs btn-file" style="float: right; margin-right:5px;">
+       <!-- <span class="btn btn-primary btn-xs btn-file" style="float: right; margin-right:5px;">
            Load query <input accept='.txt' type="file" on-read-file="loadSavedQuery($fileContent)">
-       </span>
-       <button type="button" class="btn btn-info btn-xs" style="float:right; margin-right:5px;" ng-click="removeD3QueryGraph()">Reset</button>
+       </span> -->
+       <button type="button" class="btn btn-danger btn-xs" style="float:right; margin-right:5px;" ng-click="removeD3QueryGraph()">Reset</button>
        <!-- <button type="button" class="btn btn-primary btn-xs" style="float:right; margin-right:5px;" ng-click="getClassifiedData()">Get classified data</button> -->
    </div>
 
@@ -26,21 +27,21 @@
        <div class="modal-dialog">
            <div class="modal-content">
                <div class="modal-header">
-                   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
                    <h4 class="modal-title" id="saveQueryModalLabel">Save Query:</h4>
                    <div class="modal-body">
                        <i>Enter the query name to save:</i>
                        <br>
                        <form class="form-inline">
                            <input type="text" class="form-control" style="width:80%" placeholder='enter query name' ng-model="savedQueryName" />
-                           <button type="button" class="btn btn-default" style="float:right; margin-right:5px;" ng-click="saveQuery(savedQueryName)">Save</button>
+                           <button type="button" class="btn btn-default" style="float:right; margin-right:5px;" ng-click="saveQuery(savedQueryName)" data-dismiss="modal" aria-hidden="true" ng-disabled="savedQueryName === ''">Save</button>
                        </form>
                    </div>
-                   <div class="modal-footer">
+                   <!-- <div class="modal-footer">
                        <center>
                            <button type="button" class="btn btn-circle-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
                        </center>
-                   </div>
+                   </div> -->
                </div>
            </div>
        </div>

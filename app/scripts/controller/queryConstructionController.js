@@ -23,15 +23,18 @@
         };
     });
 
-    app.controller('queryConstructionController', ['$location', '$rootScope', '$scope', '$uibModal', '$sce', '$q', '$timeout', '$http', '$window', controller]);
+    app.controller('queryConstructionController', ['$location', '$rootScope', '$scope', '$uibModal', '$sce', '$q', '$timeout', '$http', '$window' , controller]);
     function controller($location, $rootScope, $scope, $modal, $sce, $q, $timeout, $http, $window) {
         angular.element(document).ready(function() { // This code is executed after DOM loaded fully
             $scope.classifTreeRootClassId = "ICM";
             $scope.ontoConceptTreeModel = { "items": [] };
             $scope.navigationTreeModel = { "items": [] };
             $scope.queryConceptIds = [];
+            $scope.saved_queries = [];
+            $scope.savedQueryName = '';
             $scope.operators = ["<=", "<", ">=", ">", "!=", "="];
             $scope.listCheckExamTypeDmObjectTypes = ["GIN4_ExamRes", "GIN4_Acquisition", "GIN4_DataUnit"];
+            $scope.sparqlGraphStr = '';
 
             $scope.ontologySelection = {
                 value: 1,
@@ -84,20 +87,13 @@
             $scope.tabs = [{
                     title: 'Attribute Selection',
                     url: 'attrSelection.tpl.html'
+                },{
+		            title: 'Table Results',
+		            url: 'grid-results.tpl.html'
+                },{
+		            title: 'Graph Results',
+		            url: 'graph-results.tpl.html'
                 }
-                /*,{
-                    title: 'd3 All Result Graph',
-                    url: 'd3AllResultGraph.tpl.html'
-                }
-                ,
-		        {
-		            title: 'Results',
-		            url: 'results.tpl.html'
-		    	}
-		        {
-		            title: 'Classified Result',
-		            url: 'classifiedResutls.tpl.html'
-		    	}*/
             ];
 
             $scope.userAccount = {};
@@ -111,39 +107,25 @@
                 return tabUrl == $scope.currentTab;
             };
 
-            
-            
-
             /**
              * THIS SECTION READ .OWL FILE AND CONVERT IT INTO CONCEPTS TREE AND RELATIONS GRAPHS
              */
             $http.get("data/onto-stepNC.owl").success(function(data) {
-                $http.get("http://localhost:8080/queries").success(function(data) {
-                    console.log('saved queries', data);
-                });
                 $http.get("data/navigation_tree.json").success(function(data) {
                     $scope.navigationTreeModel.items = [data];
                 });
-                $http({
-                    method  : 'POST',
-                    url     : 'http://localhost:8080/queries/',
-                    data    : $.param({
-                                        name: "query_03",
-                                        query_content: "query content"
-                                    }),
-                    headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
-                })
-                .success(function(data, status, headers, config) {
-                    console.log("result", data);
-                })
-                .error(function(data, status, headers, config){
-                    console.log("error"+data);
+                
+                $http.get("http://localhost:8080/queries").success(function(data) {
+                    console.log('saved queries', data.saved_queries);
+                    $scope.savedQueries = data.saved_queries;
+                    $scope.savedQueries.forEach(function(query) { query.activeClass = ''; });
                 });
+
                 $scope.owlOnto = data;
                 $scope.jsonOnto = owlOnto2jsonOnto($scope.owlOnto);
                 jsonOnto2conceptTreeRelationGraph($scope.jsonOnto);
                 console.log('final ontoConceptTree', $scope.ontoConceptTree);
-                writeFile("ontoConceptTree.json", JSON.stringify($scope.ontoConceptTree));
+                // writeFile("ontoConceptTree.json", JSON.stringify($scope.ontoConceptTree));
                 $scope.ontoConceptTreeArray = [$scope.ontoConceptTree];
                 $scope.ontoConceptTreeModel.items = $scope.ontoConceptTreeArray;
                 $scope.d3RelationGraphDict = getD3RelationGraphDict($scope.ontoConcepts, $scope.ontoConceptDict, $scope.d3ConceptDict);
@@ -180,18 +162,18 @@
                             listD3Nodes.push(newConcept);
                             if (restriction.restrictionDirection == -1) {
                                 listD3Links.push({
-                                    "sourcedId": restriction.restrictionFiller,
-                                    "source":  listD3Nodes.length - 1,
-                                    "targetId": ontoConcept.id,
-                                    "target": 0,
-                                    "label": restriction.restrictedProperty                                
-                                });
-                            } else {
-                                listD3Links.push({
                                     "sourcedId": ontoConcept.id,
                                     "source": 0,
                                     "targetId": restriction.restrictionFiller,
                                     "target": listD3Nodes.length - 1,
+                                    "label": restriction.restrictedProperty                                
+                                });
+                            } else {
+                                listD3Links.push({
+                                    "sourcedId": restriction.restrictionFiller,
+                                    "source": listD3Nodes.length - 1,
+                                    "targetId":  ontoConcept.id,
+                                    "target": 0,
                                     "label": restriction.restrictedProperty                                
                                 });
                             }
@@ -666,20 +648,27 @@
                         var objRestrictions = tempConcept.objectRestrictions;
                         objRestrictions.forEach(function(res) {
                             if (res.restrictionFiller == concept.id) {
-                                concept.objectRestrictions.push({
-                                    "restrictedProperty": res.restrictedProperty,
-                                    "restrictionType": res.restrictionType,
-                                    "restrictionFiller": childId,
-                                    "restrictionGroup": res.restrictionGroup,
-                                    "restrictionDirection": -1
-                                })
+                                if (res.restrictionGroup != 'subClassRes')
+                                    concept.objectRestrictions.push({
+                                        "restrictedProperty": res.restrictedProperty,
+                                        "restrictionType": res.restrictionType,
+                                        "restrictionFiller": childId,
+                                        "restrictionGroup": res.restrictionGroup,
+                                        "restrictionDirection": -1
+                                    })                                   
+                                else 
+                                    concept.objectRestrictions.push({
+                                        "restrictedProperty": res.restrictedProperty,
+                                        "restrictionType": res.restrictionType,
+                                        "restrictionFiller": childId,
+                                        "restrictionGroup": res.restrictionGroup
+                                    })
+                                    
                             }
                         })
                     });
                 });
 
-                
-                
                 console.log('ontoConcepts: ', ontoConcepts);
                 // writeFile("ontoConceptDict_after.json", JSON.stringify(ontoConceptDict));
                 // writeFile("ontonConcepts.json", JSON.stringify(ontoConcepts));
@@ -866,12 +855,12 @@
                     $scope.currentSelectedConcept.selected = undefined;
                 }
                 item.selected = 'selected';
-								$scope.currentSelectedConcept = item;
-								$scope.d3RelationGraph = $scope.d3RelationGraphDict[item.id];
-								console.log('current d3RelationGraph: ', $scope.d3RelationGraph);
-								// $scope.d3ConceptRelation = getD3ConceptRelationByConceptId($scope.d3ConceptRelations, $scope.clickedQueryObject.conceptId);
-								// //$scope.clickedQueryObjectLeafClassMapping = getOntoConceptLeafClassMapping($scope.clickedQueryObject);
-								displayD3RelationGraph($scope.d3RelationGraph);
+                $scope.currentSelectedConcept = item;
+                $scope.d3RelationGraph = $scope.d3RelationGraphDict[item.id];
+                console.log('current d3RelationGraph: ', $scope.d3RelationGraph);
+                // $scope.d3ConceptRelation = getD3ConceptRelationByConceptId($scope.d3ConceptRelations, $scope.clickedQueryObject.conceptId);
+                // //$scope.clickedQueryObjectLeafClassMapping = getOntoConceptLeafClassMapping($scope.clickedQueryObject);
+                displayD3RelationGraph($scope.d3RelationGraph);
             };
 
             // $scope.dblClickConcept = function(item) {
@@ -901,7 +890,9 @@
                 $scope.currentRouteRelatedObject = $scope.routeRelatedObjects[0];
                 $scope.d3QueryGraph = queryConcepts2d3QueryGraph();
                 displayD3QueryGraph($scope.d3QueryGraph);
-                $scope.clickedQueryObject = undefined;
+                $scope.clickedQueryObject = $scope.rootQueryObject;
+                $scope.savedQueryName = '';
+                $scope.savedQueries.forEach(function(query) { query.activeClass = '' });
             };
 
             $scope.clickConceptIcon = function(item, $event) {
@@ -1443,7 +1434,7 @@
                                     $scope.queryConceptIds.push(newObject.objectId);                                    
                                     $scope.currentRouteRelatedObject.push(deepCopy(newObject));
                                     updateD3QueryGraph();
-                                }else{
+                                } else {
                                     $window.alert("Click in an related object ligne to make it current ligne.");
                                 }
                             }
@@ -1932,7 +1923,7 @@
                 var color = d3.scale.category20();
                 var force=d3.layout.force().charge(-600).linkDistance(10).size([width,height]).nodes(d3QueryGraph.nodes).links(d3QueryGraph.links).linkDistance(100).start();
                 var link=vis.selectAll(".link").data(d3QueryGraph.links).enter().append("g").attr("class","link").append("line").style("marker-end","url(#arrowhead_01)").style("stroke",function(d){return color(d.group);}).style("stroke-width","3");
-                var linkText=vis.selectAll(".link").append("text").attr("hidden",null).attr("fill","blue").style("font","normal 14px Arial").attr("dy",".35em").style("stroke-opacity","1").text(function(d){return d.label;});
+                // var linkText=vis.selectAll(".link").append("text").attr("hidden",null).attr("fill","blue").style("font","normal 14px Arial").attr("dy",".35em").style("stroke-opacity","1").text(function(d){return d.label;});
                 
                 // var link=vis.selectAll(".link").data(d3RelationGraph.links).enter().append("g").attr("class","link").append("line").style("marker-end","url(#arrowhead)").style("stroke","#6E6E6E").style("stroke-width","1.5");
                 // var linkText=vis.selectAll(".link").append("text").attr("fill","blue").attr("hidden",true).style("font","normal 14px Arial").attr("dy",".35em").style("stroke-opacity","1").text(function(d){return d.label;});
@@ -2039,7 +2030,7 @@
                 vis.style("opacity",1e-6).transition().duration(1000).style("opacity",1);
                 force.on("tick", function() {
                     link.attr("x1",function(d){return d.source.x;}).attr("y1",function(d){return d.source.y;}).attr("x2",function(d){return d.target.x;}).attr("y2",function(d){return d.target.y;});
-                    linkText.attr("x",function(d){return((d.source.x+d.target.x)/ 2);}).attr("y",function(d){return((d.source.y+d.target.y)/ 2);});
+                    // linkText.attr("x",function(d){return((d.source.x+d.target.x)/ 2);}).attr("y",function(d){return((d.source.y+d.target.y)/ 2);});
                     node.attr("transform",function(d){return"translate("+d.x+","+d.y+")";});
                 });
 
@@ -2466,221 +2457,311 @@
                 return check;
             }
 
-            $scope.generateSPARQL = function() {
+            function headersContents2Csv(headers, contents) {
+                var csv = [];
+                csv.push(headers.join(','));
+                contents.forEach(function(item) {
+                    if (item.contructor !== Array) item = [item]
+                    if (item.join(',') != '') 
+                        csv.push(item.join(','))
+                })
+                return csv;
+            }
+
+            function csvResults2gridData(csvResults) {
+                var tableData = [], colDefs = [];
+                var headers = csvResults[0].split(',');
+                var contents = csvResults.slice(1);
+                
+                headers.forEach(function(header) {
+                    colDefs.push({field: header, width: 100, pinned: true});
+                });
+
+                contents.forEach(function(content) {
+                    var tableRow = {}
+                    var rowData = content.split(',');
+                    rowData.forEach(function(item, index) {
+                        tableRow[headers[index]] = item;
+                    });
+                    tableData.push(tableRow);
+                });
+
+                return { 
+                    tableData: tableData,
+                    columnDefs: colDefs
+                }
+            }
+
+            function getSPARQLQuery2(rootQueryObject, routeRelatedObjects) {
+                $scope.pairRelations = []; $scope.conceptDeclarations = {};
+                var sparql_query = []
+                var returnedItems = getReturnedItems2(rootQueryObject, routeRelatedObjects);
+                
+                getConceptDeclarations2(rootQueryObject, routeRelatedObjects, $scope.conceptDeclarations);
+                getPairRelations2(rootQueryObject, routeRelatedObjects, $scope.pairRelations, $scope.conceptDeclarations);
+                var filters = getFilters(rootQueryObject, routeRelatedObjects);
+                var conceptDeclarations = Object.keys($scope.conceptDeclarations).map(function(key) { return $scope.conceptDeclarations[key]});
+                var pairRelations = $scope.pairRelations.map(pairRelation => pairRelation.head + ' ' + pairRelation.relation + ' ' + pairRelation.tail + ' .');
+                sparql_query.push('SELECT ' + returnedItems.join(' '));
+                sparql_query.push('{');
+                sparql_query.push(removeDuplicatedItems(conceptDeclarations).join('\r\n'));
+                sparql_query.push(removeDuplicatedItems(pairRelations).join('\r\n'));
+                if (filters.length > 0) sparql_query.push('FILTER (' + filters.join(') && (') + ')');
+                sparql_query.push('}');
+                // writeFile('output_sparql.text', sparql_query.join('\r\n'));
+                return sparql_query.join('\r\n');
+            }
+
+            function removeDuplicatedItems(arr) {
+                var uniqueArr = arr.filter(function(item, idx) {
+                    return arr.indexOf(item) == idx;
+                })
+                return uniqueArr;
+            }
+            function getSPARQLQuery(rootQueryObject, routeRelatedObjects) {
+                var sparql_query = []
+                var returnedItems = getReturnedItems(rootQueryObject, routeRelatedObjects);
+                var conceptDeclarations = getConceptDeclarations(rootQueryObject, routeRelatedObjects);
+                var pairRelations = getPairRelations(rootQueryObject, routeRelatedObjects);
+                var filters = getFilters(rootQueryObject, routeRelatedObjects);
+
+                sparql_query.push('SELECT ' + returnedItems.join(' '));
+                sparql_query.push('{');
+                sparql_query.push(conceptDeclarations.join('\r\n'));                
+                sparql_query.push(pairRelations.join('\r\n'));
+                if (filters.length > 0) sparql_query.push('FILTER (' + filters.join(') && (') + ')');
+                sparql_query.push('}');
+
+                writeFile('output_sparql.text', sparql_query.join('\r\n'));    
+            }
+
+            // var sparql_query = ['SELECT ?docAddress'];
+
+            // sparql_query.push('{ ?wkstp owl:Class stp:machining_workingstep .');
+            // sparql_query.push('?mop owl:Class stp:machining_operation .');
+            // sparql_query.push('?myTool owl:Class stp:machining_tool .');
+            // sparql_query.push('?docRef owl:Class stp:document .');
+            // sparql_query.push('?wkstp stp:machining_workingstep_has_operation ?mop .');
+            // sparql_query.push('?mop stp:machining_operation_has_tool ?myTool .');
+            // sparql_query.push('?myTool stp:machining_tool_has_id ?o .');
+            // sparql_query.push('?wkstp stp:element_has_document_reference ?docRef .');
+            // sparql_query.push('?docRef stp:document_has_name ?docAddress');
+            // sparql_query.push('filter(?o = "%s"^^<http://www.w3.org/2001/XMLSchema#string>)');
+            // sparql_query.push('}');
+
+           
+            function getConceptDeclarations(rootQueryObject, routeRelatedObjects) {
+                var selectedConceptNames = [];
+                var conceptDeclarations = [];
+                if (!rootQueryObject.isProperty) {
+                    selectedConceptNames.push(rootQueryObject.objectDisplayName);                    
+                    conceptDeclarations.push('?' + rootQueryObject.objectDisplayName + ' owl:Class stp:' + rootQueryObject.objectName + ' .');
+                }
+                routeRelatedObjects.forEach(function(routeRelatedObject) {
+                    routeRelatedObject.forEach(function(relatedObject) {
+                        if ((selectedConceptNames.indexOf(relatedObject.objectDisplayName) == -1) && (!relatedObject.isProperty))  {
+                            selectedConceptNames.push(relatedObject.objectDisplayName);
+                            conceptDeclarations.push('?' + relatedObject.objectDisplayName + ' owl:Class stp:' + relatedObject.objectName + ' .');
+                        }
+                    })
+                })
+                return conceptDeclarations;                    
+            }
+
+            function getPairRelations(rootQueryObject, routeRelatedObjects) {
+                var pairRelations = [];
+                for (var i = 0; i < routeRelatedObjects.length; i++) {
+                    var routeRelatedObject = routeRelatedObjects[i];
+                    if (routeRelatedObject.length > 0) {
+                        var tempRelation = getRelationEx(rootQueryObject, routeRelatedObject[0])
+                        if (pairRelations.indexOf(tempRelation) == -1) pairRelations.push(tempRelation);
+                        
+                        for (var j = 1; j < routeRelatedObject.length; j++) {
+                            var relatedObject = routeRelatedObject[j];
+                            var previousRelatedObject = routeRelatedObject[j-1];
+                            var tempRelation = getRelationEx(routeRelatedObject[j-1], routeRelatedObject[j]);
+                            if (pairRelations.indexOf(tempRelation) == -1) pairRelations.push(tempRelation);
+                        }
+                    }                        
+                }
+                return pairRelations;
+            }
+
+            function getRelationEx(node, nextNode) {
+                if ((nextNode.linkLabel == 'subClassOf') && (nextNode.direction !== -1))
+                    return '?' + node.objectDisplayName + ' rdfs:' + nextNode.linkLabel + ' ?' + nextNode.objectDisplayName + ' .';
+                if ((nextNode.linkLabel == 'subClassOf') && (nextNode.direction == -1))
+                    return ('?' + nextNode.objectDisplayName + ' rdfs:' + nextNode.linkLabel + ' ?' + node.objectDisplayName + ' .');
+                if ((nextNode.linkLabel !== 'subClassOf') && (nextNode.direction !== -1))
+                    return ('?' + nextNode.objectDisplayName + ' stp:' + nextNode.linkLabel + ' ?' + node.objectDisplayName + ' .');
+                if ((nextNode.linkLabel !== 'subClassOf') && (nextNode.direction == -1))
+                    return ('?' + node.objectDisplayName + ' stp:' + nextNode.linkLabel + ' ?' + nextNode.objectDisplayName + ' .');
+            }
+
+            function getReturnedItems(rootQueryObject, routeRelatedObjects) {
+                var returnedItems = [];
+                if (rootQueryObject.objectAttrs[0] !== undefined) 
+                    if (rootQueryObject.objectAttrs[0].getValue)
+                        returnedItems.push('?' + rootQueryObject.objectDisplayName);
+                routeRelatedObjects.forEach(function(routeRelatedObject) {
+                    routeRelatedObject.forEach(function(relatedObject) {
+                        if (relatedObject.objectAttrs[0] !== undefined)
+                            if (relatedObject.objectAttrs[0].getValue)
+                                returnedItems.push('?' + relatedObject.objectDisplayName);
+                    })
+                })
+                return returnedItems;
+            }
+
+            function getReturnedItems2(rootQueryObject, routeRelatedObjects) {
+                var returnedItems = [];
+                if (rootQueryObject.isReturnedValue)
+                    returnedItems.push('?' + rootQueryObject.objectDisplayName);
+                routeRelatedObjects.forEach(function(routeRelatedObject) {
+                    routeRelatedObject.forEach(function(relatedObject) {
+                        if (relatedObject.isReturnedValue)
+                            returnedItems.push('?' + relatedObject.objectDisplayName);
+                    })
+                })
+                return returnedItems;
+            }
+
+            function getFilters(rootQueryObject, routeRelatedObjects) {
+                var filters = [];
+                if (rootQueryObject.objectAttrs[0] !== undefined) 
+                    if (rootQueryObject.objectAttrs[0].attrValue !== '')
+                    filters.push('?' + rootQueryObject.objectDisplayName + '= "' + rootQueryObject.objectAttrs[0].attrValue + '"^^<http://www.w3.org/2001/XMLSchema#string>' );
+                routeRelatedObjects.forEach(function(routeRelatedObject) {
+                    routeRelatedObject.forEach(function(relatedObject) {
+                        if (relatedObject.objectAttrs[0] !== undefined)
+                            if (relatedObject.objectAttrs[0].attrValue !== '')
+                            filters.push('?' + relatedObject.objectDisplayName + ' = "' + relatedObject.objectAttrs[0].attrValue + '"^^<http://www.w3.org/2001/XMLSchema#string>' );
+                    })
+                })
+                return filters;
+            }
+
+            function getConceptDeclarations2(rootQueryObject, routeRelatedObjects, conceptDeclarations) {
+                var selectedConceptNames = [];
+                if (!rootQueryObject.isProperty) {
+                    selectedConceptNames.push(rootQueryObject.objectDisplayName);                    
+                    conceptDeclarations[rootQueryObject.objectDisplayName] = '?' + rootQueryObject.objectDisplayName + ' owl:Class stp:' + rootQueryObject.objectName + ' .';
+                }
+                routeRelatedObjects.forEach(function(routeRelatedObject) {
+                    routeRelatedObject.forEach(function(relatedObject) {
+                        if ((conceptDeclarations[relatedObject.objectDisplayName] === undefined) && (!relatedObject.isProperty)) {
+                            selectedConceptNames.push(relatedObject.objectDisplayName);
+                            conceptDeclarations[relatedObject.objectDisplayName] = '?' + relatedObject.objectDisplayName + ' owl:Class stp:' + relatedObject.objectName + ' .';
+                        }
+                    })
+                });           
+            }
+            
+            function getPairRelations2(rootQueryObject, routeRelatedObjects, pairRelations, conceptDeclarations) {
+                for (var i = 0; i < routeRelatedObjects.length; i++) {
+                    var routeRelatedObject = routeRelatedObjects[i];
+                    if (routeRelatedObject.length > 0) {
+                        var tempRelation = getRelationEx2(rootQueryObject, routeRelatedObject[0])
+                        if (pairRelations.indexOf(tempRelation) == -1) pairRelations.push(tempRelation);
+                        
+                        for (var j = 1; j < routeRelatedObject.length; j++) {
+                            var relatedObject = routeRelatedObject[j];
+                            var previousRelatedObject = routeRelatedObject[j-1];
+                            var tempRelation = getRelationEx2(routeRelatedObject[j-1], routeRelatedObject[j]);
+                            if (pairRelations.indexOf(tempRelation) == -1) pairRelations.push(tempRelation);
+                        }
+                    }                        
+                }
+                removeSubClassOfRelation(pairRelations, conceptDeclarations);
+            }
+
+            function getRelationEx2(node, nextNode) {
+                if ((nextNode.linkLabel == 'subClassOf') && (nextNode.direction !== -1))
+                    return {
+                        'head': '?' + node.objectDisplayName,
+                        'relation': 'rdfs:' + nextNode.linkLabel,
+                        'tail': '?' + nextNode.objectDisplayName
+                    }
+                if ((nextNode.linkLabel == 'subClassOf') && (nextNode.direction == -1))
+                    return {
+                        'head': '?' + nextNode.objectDisplayName,
+                        'relation': 'rdfs:' + nextNode.linkLabel,
+                        'tail': '?' + node.objectDisplayName
+                    }                        
+                if ((nextNode.linkLabel !== 'subClassOf') && (nextNode.direction !== -1))
+                    return {
+                        'head': '?' + nextNode.objectDisplayName,
+                        'relation': 'stp:' + nextNode.linkLabel,
+                        'tail': '?' + node.objectDisplayName
+                    }
+                if ((nextNode.linkLabel !== 'subClassOf') && (nextNode.direction == -1))
+                    return {
+                        'head': '?' + node.objectDisplayName,
+                        'relation': 'stp:' + nextNode.linkLabel,
+                        'tail': '?' + nextNode.objectDisplayName
+                    }
+            }
+
+            function removeSubClassOfRelation(pairRelations, conceptDeclarations) {
+                var idxs = []
+                for (var i = 0; i < pairRelations.length; i++) {
+                    if (pairRelations[i].relation == 'rdfs:subClassOf') {
+                        idxs.push(i);
+                        console.log(pairRelations);
+                    }
+                }
+                if (idxs[0] !== undefined) {
+                    var tempHead = pairRelations[idxs[0]].head;
+                    var tempTail = pairRelations[idxs[0]].tail;
+                    pairRelations.splice(idxs[0], 1);
+                    delete conceptDeclarations[tempTail.slice(1)];
+                    pairRelations.forEach(function(pairRelation) {
+                        if (pairRelation.head == tempTail) {
+                            pairRelation.head = tempHead;
+                        }
+                    })
+                    removeSubClassOfRelation(pairRelations, conceptDeclarations)
+                }      
+            }
+
+            $scope.executeSPARQL = function() {
+                var sparql_qr = getSPARQLQuery2($scope.rootQueryObject, $scope.routeRelatedObjects);
+                $http({
+                    method  : 'POST',
+                    url     : 'http://localhost:8080/queries/execute-sparql',
+                    data    : $.param({ sparql_qr: sparql_qr }),
+                    headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+                })
+                .success(function(data, status, headers, config) {
+                    console.log("execute query successfully, results: ", data.results);
+                    var varNames = data.results.dataList.varNames;
+                    var varValues = data.results.dataList.varValues;
+                    
+                    $scope.sparqlGraphStr = data.results.dataGraph.graph_str;
+                    $scope.csvResults = headersContents2Csv(varNames, varValues);
+                    
+                    var gridData = csvResults2gridData($scope.csvResults);
+                    $scope.gridTableData = gridData.tableData;
+                    $scope.gridColumnDefs = gridData.columnDefs;
+                    $scope.sparqlGridOptions = {
+                            data: 'gridTableData',
+                            enablePinning:true,
+                            columnDefs: 'gridColumnDefs',
+                            jqueryUIDraggable:true
+                        }
+                    alert('Query successfully: Check results in Table Results and Graph Results tab.');
+                })
+                .error(function(data, status, headers, config){
+                    alert("error excuting query, error: ", data);
+                });
+            }
+
+            $scope.saveGridResults = function() {
+                writeFile('results.csv', $scope.csvResults.join('\r\n'));
+            }
+            $scope.generateSPARQL = function(d3QueryGraph) {
                 // getSPARQLQuery($scope.rootQueryObject, $scope.routeRelatedObjects);
                 getSPARQLQuery2($scope.rootQueryObject, $scope.routeRelatedObjects);
-
-                function getSPARQLQuery(rootQueryObject, routeRelatedObjects) {
-                    var sparql_query = []
-                    var returnedItems = getReturnedItems(rootQueryObject, routeRelatedObjects);
-                    var conceptDeclarations = getConceptDeclarations(rootQueryObject, routeRelatedObjects);
-                    var pairRelations = getPairRelations(rootQueryObject, routeRelatedObjects);
-                    var filters = getFilters(rootQueryObject, routeRelatedObjects);
-    
-                    sparql_query.push('SELECT ' + returnedItems.join(' '));
-                    sparql_query.push('{');
-                    sparql_query.push(conceptDeclarations.join('\r\n'));                
-                    sparql_query.push(pairRelations.join('\r\n'));
-                    if (filters.length > 0) sparql_query.push('FILTER (' + filters.join(') && (') + ')');
-                    sparql_query.push('}');
-    
-                    writeFile('output_sparql.text', sparql_query.join('\r\n'));    
-                }
-
-                // var sparql_query = ['SELECT ?docAddress'];
-
-                // sparql_query.push('{ ?wkstp owl:Class stp:machining_workingstep .');
-                // sparql_query.push('?mop owl:Class stp:machining_operation .');
-                // sparql_query.push('?myTool owl:Class stp:machining_tool .');
-                // sparql_query.push('?docRef owl:Class stp:document .');
-                // sparql_query.push('?wkstp stp:machining_workingstep_has_operation ?mop .');
-                // sparql_query.push('?mop stp:machining_operation_has_tool ?myTool .');
-                // sparql_query.push('?myTool stp:machining_tool_has_id ?o .');
-                // sparql_query.push('?wkstp stp:element_has_document_reference ?docRef .');
-                // sparql_query.push('?docRef stp:document_has_name ?docAddress');
-                // sparql_query.push('filter(?o = "%s"^^<http://www.w3.org/2001/XMLSchema#string>)');
-                // sparql_query.push('}');
-
-               
-                function getConceptDeclarations(rootQueryObject, routeRelatedObjects) {
-                    var selectedConceptNames = [];
-                    var conceptDeclarations = [];
-                    if (!rootQueryObject.isProperty) {
-                        selectedConceptNames.push(rootQueryObject.objectDisplayName);                    
-                        conceptDeclarations.push('?' + rootQueryObject.objectDisplayName + ' owl:Class stp:' + rootQueryObject.objectName + ' .');
-                    }
-                    routeRelatedObjects.forEach(function(routeRelatedObject) {
-                        routeRelatedObject.forEach(function(relatedObject) {
-                            if ((selectedConceptNames.indexOf(relatedObject.objectDisplayName) == -1) && (!relatedObject.isProperty))  {
-                                selectedConceptNames.push(relatedObject.objectDisplayName);
-                                conceptDeclarations.push('?' + relatedObject.objectDisplayName + ' owl:Class stp:' + relatedObject.objectName + ' .');
-                            }
-                        })
-                    })
-                    return conceptDeclarations;                    
-                }
-
-                function getPairRelations(rootQueryObject, routeRelatedObjects) {
-                    var pairRelations = [];
-                    for (var i = 0; i < routeRelatedObjects.length; i++) {
-                        var routeRelatedObject = routeRelatedObjects[i];
-                        if (routeRelatedObject.length > 0) {
-                            var tempRelation = getRelationEx(rootQueryObject, routeRelatedObject[0])
-                            if (pairRelations.indexOf(tempRelation) == -1) pairRelations.push(tempRelation);
-                            
-                            for (var j = 1; j < routeRelatedObject.length; j++) {
-                                var relatedObject = routeRelatedObject[j];
-                                var previousRelatedObject = routeRelatedObject[j-1];
-                                var tempRelation = getRelationEx(routeRelatedObject[j-1], routeRelatedObject[j]);
-                                if (pairRelations.indexOf(tempRelation) == -1) pairRelations.push(tempRelation);
-                            }
-                        }                        
-                    }
-                    return pairRelations;
-                }
-
-                function getRelationEx(node, nextNode) {
-                    if ((nextNode.linkLabel == 'subClassOf') && (nextNode.direction !== -1))
-                        return '?' + node.objectDisplayName + ' rdfs:' + nextNode.linkLabel + ' ?' + nextNode.objectDisplayName + ' .';
-                    if ((nextNode.linkLabel == 'subClassOf') && (nextNode.direction == -1))
-                        return ('?' + nextNode.objectDisplayName + ' rdfs:' + nextNode.linkLabel + ' ?' + node.objectDisplayName + ' .');
-                    if ((nextNode.linkLabel !== 'subClassOf') && (nextNode.direction !== -1))
-                        return ('?' + nextNode.objectDisplayName + ' stp:' + nextNode.linkLabel + ' ?' + node.objectDisplayName + ' .');
-                    if ((nextNode.linkLabel !== 'subClassOf') && (nextNode.direction == -1))
-                        return ('?' + node.objectDisplayName + ' stp:' + nextNode.linkLabel + ' ?' + nextNode.objectDisplayName + ' .');
-                }
-
-                function getReturnedItems(rootQueryObject, routeRelatedObjects) {
-                    var returnedItems = [];
-                    if (rootQueryObject.objectAttrs[0] !== undefined) 
-                        if (rootQueryObject.objectAttrs[0].getValue)
-                            returnedItems.push('?' + rootQueryObject.objectDisplayName);
-                    routeRelatedObjects.forEach(function(routeRelatedObject) {
-                        routeRelatedObject.forEach(function(relatedObject) {
-                            if (relatedObject.objectAttrs[0] !== undefined)
-                                if (relatedObject.objectAttrs[0].getValue)
-                                    returnedItems.push('?' + relatedObject.objectDisplayName);
-                        })
-                    })
-                    return returnedItems;
-                }
-
-                function getFilters(rootQueryObject, routeRelatedObjects) {
-                    var filters = [];
-                    if (rootQueryObject.objectAttrs[0] !== undefined) 
-                        if (rootQueryObject.objectAttrs[0].attrValue !== '')
-                        filters.push('?' + rootQueryObject.objectDisplayName + '= "' + rootQueryObject.objectAttrs[0].attrValue + '"^^<http://www.w3.org/2001/XMLSchema#string>' );
-                    routeRelatedObjects.forEach(function(routeRelatedObject) {
-                        routeRelatedObject.forEach(function(relatedObject) {
-                            if (relatedObject.objectAttrs[0] !== undefined)
-                                if (relatedObject.objectAttrs[0].attrValue !== '')
-                                filters.push('?' + relatedObject.objectDisplayName + ' = "' + relatedObject.objectAttrs[0].attrValue + '"^^<http://www.w3.org/2001/XMLSchema#string>' );
-                        })
-                    })
-                    return filters;
-                }
-
-                function getSPARQLQuery2(rootQueryObject, routeRelatedObjects) {
-                    $scope.pairRelations = []; $scope.conceptDeclarations = {};
-                    var sparql_query = []
-                    var returnedItems = getReturnedItems(rootQueryObject, routeRelatedObjects);
-                    
-                    getConceptDeclarations2(rootQueryObject, routeRelatedObjects, $scope.conceptDeclarations);
-                    getPairRelations2(rootQueryObject, routeRelatedObjects, $scope.pairRelations, $scope.conceptDeclarations);
-                    var filters = getFilters(rootQueryObject, routeRelatedObjects);
-                    
-                    sparql_query.push('SELECT ' + returnedItems.join(' '));
-                    sparql_query.push('{');
-                    sparql_query.push(Object.values($scope.conceptDeclarations).join('\r\n'));                
-                    sparql_query.push($scope.pairRelations.map(pairRelation => pairRelation.head + ' ' + pairRelation.relation + ' ' + pairRelation.tail + ' .').join('\r\n'));
-                    if (filters.length > 0) sparql_query.push('FILTER (' + filters.join(') && (') + ')');
-                    sparql_query.push('}');
-    
-                    writeFile('output_sparql.text', sparql_query.join('\r\n'));    
-                }
-
-                function getConceptDeclarations2(rootQueryObject, routeRelatedObjects, conceptDeclarations) {
-                    var selectedConceptNames = [];
-                    if (!rootQueryObject.isProperty) {
-                        selectedConceptNames.push(rootQueryObject.objectDisplayName);                    
-                        conceptDeclarations[rootQueryObject.objectDisplayName] = '?' + rootQueryObject.objectDisplayName + ' owl:Class stp:' + rootQueryObject.objectName + ' .';
-                    }
-                    routeRelatedObjects.forEach(function(routeRelatedObject) {
-                        routeRelatedObject.forEach(function(relatedObject) {
-                            if ((conceptDeclarations[relatedObject.objectDisplayName] === undefined) && (!relatedObject.isProperty)) {
-                                selectedConceptNames.push(relatedObject.objectDisplayName);
-                                conceptDeclarations[relatedObject.objectDisplayName] = '?' + relatedObject.objectDisplayName + ' owl:Class stp:' + relatedObject.objectName + ' .';
-                            }
-                        })
-                    });                
-                }
-                
-                function getPairRelations2(rootQueryObject, routeRelatedObjects, pairRelations, conceptDeclarations) {
-                    for (var i = 0; i < routeRelatedObjects.length; i++) {
-                        var routeRelatedObject = routeRelatedObjects[i];
-                        if (routeRelatedObject.length > 0) {
-                            var tempRelation = getRelationEx2(rootQueryObject, routeRelatedObject[0])
-                            if (pairRelations.indexOf(tempRelation) == -1) pairRelations.push(tempRelation);
-                            
-                            for (var j = 1; j < routeRelatedObject.length; j++) {
-                                var relatedObject = routeRelatedObject[j];
-                                var previousRelatedObject = routeRelatedObject[j-1];
-                                var tempRelation = getRelationEx2(routeRelatedObject[j-1], routeRelatedObject[j]);
-                                if (pairRelations.indexOf(tempRelation) == -1) pairRelations.push(tempRelation);
-                            }
-                        }                        
-                    }
-                    removeSubClassOfRelation(pairRelations, conceptDeclarations);
-                }
-
-                function getRelationEx2(node, nextNode) {
-                    if ((nextNode.linkLabel == 'subClassOf') && (nextNode.direction !== -1))
-                        return {
-                            'head': '?' + node.objectDisplayName,
-                            'relation': 'rdfs:' + nextNode.linkLabel,
-                            'tail': '?' + nextNode.objectDisplayName
-                        }
-                    if ((nextNode.linkLabel == 'subClassOf') && (nextNode.direction == -1))
-                        return {
-                            'head': '?' + nextNode.objectDisplayName,
-                            'relation': 'rdfs:' + nextNode.linkLabel,
-                            'tail': '?' + node.objectDisplayName
-                        }                        
-                    if ((nextNode.linkLabel !== 'subClassOf') && (nextNode.direction !== -1))
-                        return {
-                            'head': '?' + nextNode.objectDisplayName,
-                            'relation': 'stp:' + nextNode.linkLabel,
-                            'tail': '?' + node.objectDisplayName
-                        }
-                    if ((nextNode.linkLabel !== 'subClassOf') && (nextNode.direction == -1))
-                        return {
-                            'head': '?' + node.objectDisplayName,
-                            'relation': 'stp:' + nextNode.linkLabel,
-                            'tail': '?' + nextNode.objectDisplayName
-                        }
-                }
-
-                function removeSubClassOfRelation(pairRelations, conceptDeclarations) {
-                    var idxs = []
-                    for (var i = 0; i < pairRelations.length; i++) {
-                        if (pairRelations[i].relation == 'rdfs:subClassOf') {
-                            idxs.push(i);
-                            console.log(pairRelations);
-                        }
-                    }
-                    if (idxs[0] !== undefined) {
-                        var tempHead = pairRelations[idxs[0]].head;
-                        var tempTail = pairRelations[idxs[0]].tail;
-                        pairRelations.splice(idxs[0], 1);
-                        delete conceptDeclarations[tempTail.slice(1)];
-                        pairRelations.forEach(function(pairRelation) {
-                            if (pairRelation.head == tempTail) {
-                                pairRelation.head = tempHead;
-                            }
-                        })
-                        removeSubClassOfRelation(pairRelations, conceptDeclarations)
-                    }      
-                }
                 // function removeSubClassOfProps(rootQueryObject, routeRelatedObjects) {
                 //     if 
                 // }
@@ -2784,26 +2865,6 @@
                 }
                 return tempRouteRelatedObjects;
             }
-
-            /**
-             * [saveQuery description]
-             * This function save the current query with the name entered by 
-             * @param  {[type]} savedQueryName [description]
-             * @return {[type]}                [description]
-             */
-            $scope.saveQuery = function(savedQueryName) {
-                console.log(savedQueryName);
-                if (savedQueryName === undefined) {
-                    $window.alert("Please enter a name for the saved query.");
-                }else{
-                    var queryObjects = [];
-                    for (var i = 0; i < $scope.routeRelatedObjects.length; i++) {
-                        queryObjects.push($scope.routeRelatedObjects[i]);
-                    }
-                    queryObjects.push([$scope.rootQueryObject]);
-                    writeFile(savedQueryName + ".txt", JSON.stringify(queryObjects));
-                }
-            };
 
             function getTxtQuery7(rootQueryObject, routeRelatedObjects){
                 var username = "infodba", password = "infodba";
@@ -4685,6 +4746,131 @@
                 };
                 return csvListGridResult;
             }
+        
+        /**
+         * NAVIGATION PANEL
+         */
+
+        $scope.clickNavConcept = function(clickedNavConcept) {
+            console.log('clicked nav concept: ', clickedNavConcept);
+            if ($scope.currentSelectedNavConcept && $scope.currentSelectedNavConcept.selected) {
+                $scope.currentSelectedNavConcept.selected = undefined;
+            }
+            var corresConcept = findClickedNavConcept(clickedNavConcept);
+            clickedNavConcept.selected = "selected";
+            $scope.currentSelectedNavConcept = clickedNavConcept;
+            $scope.d3RelationGraph = $scope.d3RelationGraphDict[corresConcept.id];
+            console.log('current d3RelationGraph: ', $scope.d3RelationGraph);
+            displayD3RelationGraph($scope.d3RelationGraph);
+        }
+
+        $scope.dblClickNavConcept = function(clickedNavConcept) {
+            console.log('double click nav concept: ', clickedNavConcept);
+            var corresConcept = findClickedNavConcept(clickedNavConcept);
+            if (corresConcept == {}) 
+                alert('Error! Can not find corresponding concept in the tree of concepts.');
+            else {
+                $scope.rootQueryObject = setNewD3ObjectFromConcept(corresConcept);
+                $scope.routeRelatedObjects = [[]];
+                $scope.currentSelectedConceptId = "";
+                $scope.currentRouteRelatedObject = $scope.routeRelatedObjects[0];
+                $scope.d3QueryGraph = queryConcepts2d3QueryGraph();
+                displayD3QueryGraph($scope.d3QueryGraph);
+                $scope.clickedQueryObject = $scope.rootQueryObject;
+                $scope.savedQueryName = '';
+                $scope.savedQueries.forEach(function(query) { query.activeClass = '' });
+            }
+        }
+
+        // This function return the concept in ontoConcepts that is corresponding to 
+        // the clickedNavConcept
+
+        function findClickedNavConcept(clickedNavConcept) {
+            var foundConcept = {};
+            $scope.ontoConcepts.forEach(function(concept) {
+                if (concept.name == clickedNavConcept.ontostep_name)
+                    foundConcept = concept;
+            })
+            return foundConcept;
+        }
+        /**
+         * SAVED QUERIES PANEL
+         */
+        
+            $scope.clickSavedQuery = function(clickedQuery) {
+                if (clickedQuery.activeClass == '') {
+                    clickedQuery.activeClass = 'active';
+                    $scope.savedQueryName = clickedQuery.name;
+                    $scope.savedQueries.forEach(function(query) {
+                        if (query.id !== clickedQuery.id)
+                            query.activeClass = '';
+                    })
+                    
+                    // todo: Change d3QueryGraph
+                    var queryObjects = JSON.parse(clickedQuery.query_content), lengthRoutes = queryObjects.length;
+                    $scope.rootQueryObject = queryObjects[lengthRoutes-1][0];
+                    queryObjects.splice(lengthRoutes-1,1);
+                    $scope.routeRelatedObjects = queryObjects;
+                    $scope.d3QueryGraph = queryConcepts2d3QueryGraph();
+                    displayD3QueryGraph($scope.d3QueryGraph);
+                    $scope.currentRouteRelatedObject = $scope.routeRelatedObjects[0];
+                    console.log($scope.routeRelatedObjects);
+                }
+            }
+
+            $scope.deleteQuery = function(clickedQuery) {
+                $http.get("http://localhost:8080/queries/delete/" + clickedQuery.id)
+                .success(function(data) {
+                    console.log('query deleted');
+                    $scope.savedQueries.splice($scope.savedQueries.indexOf(clickedQuery), 1);
+                })
+                .error(function(data){
+                    alert("error deleting query, error: ", data);
+                });
+            }
+
+            /**
+             * [saveQuery description]
+             * This function save the current query with the name entered by 
+             * @param  {[type]} savedQueryName [description]
+             * @return {[type]}                [description]
+             */
+            $scope.saveQuery = function(savedQueryName) {
+                console.log(savedQueryName);
+                if (savedQueryName === '') {
+                    $window.alert("Please enter a name for the saved query.");
+                } else {
+                    var queryObjects = [];
+                    for (var i = 0; i < $scope.routeRelatedObjects.length; i++) {
+                        queryObjects.push($scope.routeRelatedObjects[i]);
+                    }
+                    queryObjects.push([$scope.rootQueryObject]);
+                    // save query into DB
+                    $http({
+                            method  : 'POST',
+                            url     : 'http://localhost:8080/queries/post',
+                            data    : $.param({ 
+                                name: savedQueryName,
+                                query_content: JSON.stringify(queryObjects) 
+                            }),
+                            headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+                        })
+                        .success(function(data, status, headers, config) {
+                            console.log("post query successfully, added query name: ", savedQueryName);
+                            if (data.status == 'add') {
+                                var savedQuery = data.saved_query;
+                                savedQuery.activeClass = 'active';
+                                $scope.savedQueries.forEach(function(query) { query.activeClass = ''; });
+                                $scope.savedQueries.push(savedQuery);
+                            }
+                        })
+                        .error(function(data, status, headers, config){
+                            alert("error in posting query, query name: ", savedQueryName);
+                        });
+                    writeFile(savedQueryName + ".txt", JSON.stringify(queryObjects));
+                }
+            };
+            
         /**
          * OTHER FUNCTIONS
          */

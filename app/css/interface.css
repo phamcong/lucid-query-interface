@@ -3,19 +3,71 @@
 	height: 100%;
 }
 
-.conceptTreePanel, .relationGraphPanel, .dataPanel {
+.relationGraphPanel {
 	overflow: auto;
 	height: 60vh;
 }
 
-.conceptDescriptionPanel, .queryGraphPanel, .productPanel {
+.conceptTreePanel {
+	/* overflow: auto; */
+	height: 100vh;
+}
+
+.ontoconcept-tree {
+	overflow: auto;
+	height: 55vh;
+	/* border: 1px solid grey;
+	border-radius: 5px; */
+}
+
+.ontoconcept-tree-full {
+	overflow: auto;
+	height: 82vh;
+	/* border: 1px solid grey;
+	border-radius: 5px; */
+}
+
+.navigation-tree {
+	overflow: auto;
+	height: 24vh;
+}
+
+.dataPanel {
+	overflow: auto;
+	height: 30vh;
+}
+
+.grid-results {
+	overflow: auto;
+	height: 20vh;
+}
+
+.graph-results {
+	overflow: auto;
+	height: 22vh;
+	display: block;
+	margin: auto;
+}
+
+.productPanel {
+	overflow: auto;
+	height: 29.5vh;
+}
+
+.conceptDescriptionPanel, .queryGraphPanel, .savedQueryPanel {
 	overflow: auto;
 	height: 39.5vh;
+}
+
+.saved-queries {
+	overflow: auto;
+	height: 35vh;
 }
 
 .right {
 	float: right;
 }
+
 .label_selected_object{
 	padding-left:3px;
 	padding-right:3px;
@@ -58,7 +110,7 @@ ul {
 
 li {
   list-style: none;
-  padding: 0px;
+  padding-left: 5px;
   margin: 0px 0px 0px 10px;
 }
 
